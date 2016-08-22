@@ -1,5 +1,6 @@
 <?php
 date_default_timezone_set('GMT');
+require_once('auth.php');
 
 function get_mime_type($imagedata) {
   $info = new finfo(FILEINFO_MIME);
@@ -16,12 +17,19 @@ function get_raw_image($requesturl, $lastmod='') {
   if (file_exists($etagpath)) $fileetag = file_get_contents($etagpath);
 
   $basepath = $_SERVER['SCRIPT_NAME']."/imagehandler/scaler";
-  $imglocation = "http:/".substr($requesturl, strlen($basepath));
-  $context = array();
-  if ($lastmod) $context = array(
-    'http' => array(
+  $location = substr($requesturl, strlen($basepath));
+  $urlinfo = parse_url("http:/".$location);
+  $info = $GLOBALS['auth_map'][$urlinfo['host']];
+  $imglocation = ($info[2] == 'SSL' ? 'https:/' : 'http:/').$location;
+
+  $headers = '';
+  if ($lastmod) $headers .= "If-Modified-Since: ".$lastmod." GMT\r\n";
+  if ($info[0]) $headers .= "Authorization: Basic " . base64_encode($info[0].':'.$info[1])."\r\n";
+
+  $context = array(
+  	'http' => array(
       'method' => "GET",
-      'header' => "If-Modified-Since: ".$lastmod." GMT\r\n"
+      'header' => $headers
     )
   );
   $imgdata = file_get_contents($imglocation, false, stream_context_create($context));
@@ -77,10 +85,10 @@ function print_cache_image_or_return_original($requesturl, $etag, $lastmodified)
   $path = get_cache_path($requesturl);
   $filepath = $path.'/data';
   $etagpath = $path.'/etag';
+  if (!file_exists($filepath) || !file_exists($etagpath)) return get_raw_image($requesturl);
 
   $filelmtime =  filemtime($filepath);
   $filelm = gmdate("D, d M Y H:i:s", $filelmtime);
-  if (!file_exists($filepath) || !file_exists($etagpath)) return get_raw_image($requesturl);
 
   $image = get_raw_image($requesturl, $filelm);
   if ($image) return $image;

@@ -1,5 +1,5 @@
 <?php
-error_reporting(E_WARNING);
+error_reporting(E_WARNING | E_PARSE);
 
 require_once('resizelib.php');
 
