@@ -1,6 +1,6 @@
 <?php
 date_default_timezone_set('GMT');
-require_once('auth.php');
+require_once('/etc/imagehandler/auth.php');
 
 function get_mime_type($imagedata) {
   $info = new finfo(FILEINFO_MIME);
@@ -16,7 +16,7 @@ function get_raw_image($requesturl, $lastmod='') {
   $etagpath = $path.'/etag';
   if (file_exists($etagpath)) $fileetag = file_get_contents($etagpath);
 
-  $basepath = $_SERVER['SCRIPT_NAME']."/imagehandler/scaler";
+  $basepath = "/imagehandler/scaler";
   $location = substr($requesturl, strlen($basepath));
   $urlinfo = parse_url("http:/".$location);
   $info = $GLOBALS['auth_map'][$urlinfo['host']];
