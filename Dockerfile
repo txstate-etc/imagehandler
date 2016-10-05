@@ -11,5 +11,7 @@ RUN apt-get clean && rm -rf /tmp/* /var/tmp*
 
 COPY policy.xml /etc/ImageMagick-6/policy.xml
 COPY src/ /var/www/html/
-COPY config/ /etc/imagehandler/
+COPY cmd.sh /cmd.sh
 RUN mkdir -p /var/cache/resize && chown www-data:www-data /var/cache/resize
+
+CMD ["/cmd.sh"]

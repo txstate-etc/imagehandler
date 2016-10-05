@@ -1,6 +1,6 @@
 <?php
 date_default_timezone_set('GMT');
-require_once('/etc/imagehandler/auth.php');
+$GLOBALS['auth_map'] = json_decode($_ENV['IMAGEHANDLERAUTHJSON'], TRUE);
 
 function get_mime_type($imagedata) {
   $info = new finfo(FILEINFO_MIME);
