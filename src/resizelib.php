@@ -1,6 +1,7 @@
 <?php
 date_default_timezone_set('GMT');
 $GLOBALS['auth_map'] = json_decode($_ENV['IMAGEHANDLERAUTHJSON'], TRUE);
+$GLOBALS['stats'] = array();
 
 function get_mime_type($imagedata) {
   $info = new finfo(FILEINFO_MIME);
@@ -8,7 +9,13 @@ function get_mime_type($imagedata) {
 }
 
 function check_magic_bytes($imagedata) {
-  return (0===strpos(get_mime_type($imagedata), 'image/'));
+  $mimetype = get_mime_type($imagedata);
+  $GLOBALS['stats']['image_type'] = $mimetype;
+  return (0===strpos($mimetype, 'image/'));
+}
+
+function benchmark($start) {
+  return round((microtime(TRUE) - $start)*1000);
 }
 
 function get_raw_image($requesturl, $lastmod='') {
@@ -45,6 +52,7 @@ function get_raw_image($requesturl, $lastmod='') {
     exit;
   }
 
+  $GLOBALS['stats']['filesize_input'] = strlen($imgdata);
   if (!file_exists($path)) mkdir($path, 0755, true);
   file_put_contents($etagpath, md5($imgdata));
 
@@ -85,18 +93,25 @@ function print_cache_image_or_return_original($requesturl, $etag, $lastmodified)
   $path = get_cache_path($requesturl);
   $filepath = $path.'/data';
   $etagpath = $path.'/etag';
-  if (!file_exists($filepath) || !file_exists($etagpath)) return get_raw_image($requesturl);
+
+  $start = microtime(TRUE);
+  $image = get_raw_image($requesturl, $filelm);
+  $GLOBALS['stats']['time_retrieve'] = benchmark($start);
+
+  if ($image) return $image;
+
+  if (!file_exists($filepath) || !file_exists($etagpath)) return $image;
+  $GLOBALS['stats']['cache_hit'] = TRUE;
 
   $filelmtime =  filemtime($filepath);
   $filelm = gmdate("D, d M Y H:i:s", $filelmtime);
-
-  $image = get_raw_image($requesturl, $filelm);
-  if ($image) return $image;
-
   $fileetag = trim(file_get_contents($etagpath));
 
   if ((!$etag && !$lastmodified) || ($etag && trim($etag) != $fileetag) || ($lastmodified && strtotime($lastmodified) < $filelmtime)) {
-    print_blob(file_get_contents($filepath), $filelm, $fileetag);
+    $start = microtime(TRUE);
+    $cachedimage = file_get_contents($filepath);
+    $GLOBALS['stats']['time_cacheread'] = benchmark($start);
+    print_blob($cachedimage, $filelm, $fileetag);
   } else {
     print_304($filelm, $fileetag);
   }
@@ -104,15 +119,31 @@ function print_cache_image_or_return_original($requesturl, $etag, $lastmodified)
 }
 
 function print_blob($blob, $lastmod, $etag) {
+  $start = microtime(TRUE);
   header('Content-Type: '.get_mime_type($blob));
   header("Last-Modified: ".$lastmod." GMT");
   header("Etag: $etag");
   echo $blob;
+  flush();
+  $GLOBALS['stats']['filesize_output'] = strlen($blob);
+  $GLOBALS['stats']['time_stream'] = benchmark($start);
 }
 
 function print_304($lastmod, $etag) {
+  $GLOBALS['stats']['not_modified'] = TRUE;
+  $start = microtime(TRUE);
   header('HTTP/1.1 304 Not Modified');
   header("Last-Modified: ".$lastmod." GMT");
   header("Etag: $etag");
+  flush();
+  $GLOBALS['stats']['time_stream'] = benchmark($start);
+}
+
+function log_event_statistics() {
+  $stats = $GLOBALS['stats'];
+  $stats['request_uri'] = $_SERVER['REQUEST_URI'];
+  $stats['referer'] = $_SERVER['HTTP_REFERER'];
+  $stats['hostname'] = gethostname();
+  $stats['environment'] = $_ENV['IMAGEHANDLERSTAGE'] ?: 'development';
 }
 ?>
