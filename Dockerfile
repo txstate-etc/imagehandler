@@ -11,11 +11,11 @@ RUN a2enmod ssl
 RUN apt-get clean && rm -rf /tmp/* /var/tmp*
 
 COPY policy.xml /etc/ImageMagick-6/policy.xml
-COPY src/ /var/www/html/
-COPY cmd.sh /cmd.sh
 COPY secure.conf /etc/apache2/sites-enabled
 COPY private.key /securekeys/private.key
 COPY cert.pem /securekeys/cert.pem
+COPY cmd.sh /cmd.sh
+COPY src/ /var/www/html/
 RUN mkdir -p /var/cache/resize && chown www-data:www-data /var/cache/resize
 
 EXPOSE 443
