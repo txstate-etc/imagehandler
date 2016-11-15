@@ -18,6 +18,7 @@ COPY cert.pem /securekeys/cert.pem
 COPY cmd.sh /cmd.sh
 COPY src/ /var/www/html/
 RUN mkdir -p /var/cache/resize && chown www-data:www-data /var/cache/resize
+RUN ln -s /var/cache/resize/.mounted /var/www/html/health-check
 
 EXPOSE 443
 
