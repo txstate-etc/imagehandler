@@ -12,6 +12,7 @@ RUN apt-get clean && rm -rf /tmp/* /var/tmp*
 
 COPY policy.xml /etc/ImageMagick-6/policy.xml
 COPY secure.conf /etc/apache2/sites-enabled
+COPY mpm_prefork.conf /etc/apache2/mods-available
 COPY private.key /securekeys/private.key
 COPY cert.pem /securekeys/cert.pem
 COPY cmd.sh /cmd.sh
