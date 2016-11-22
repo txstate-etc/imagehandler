@@ -11,10 +11,10 @@ RUN a2enmod ssl
 RUN apt-get clean && rm -rf /tmp/* /var/tmp*
 
 COPY policy.xml /etc/ImageMagick-6/policy.xml
-COPY secure.conf /etc/apache2/sites-enabled
-COPY mpm_prefork.conf /etc/apache2/mods-available
-COPY private.key /securekeys/private.key
-COPY cert.pem /securekeys/cert.pem
+COPY apache/secure.conf /etc/apache2/sites-enabled
+COPY apache/mpm_prefork.conf /etc/apache2/mods-available
+COPY ssl/private.key /securekeys/private.key
+COPY ssl/cert.pem /securekeys/cert.pem
 COPY cmd.sh /cmd.sh
 COPY src/ /var/www/html/
 RUN mkdir -p /var/cache/resize && chown www-data:www-data /var/cache/resize
