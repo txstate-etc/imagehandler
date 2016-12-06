@@ -14,6 +14,32 @@ function check_magic_bytes($imagedata) {
   return (0===strpos($mimetype, 'image/'));
 }
 
+function crop_image($image, $width, $height, $x, $y) {
+	if ($image->getImageWidth() == $width && $image->getImageHeight() == $height) return $image;
+	if ($image->count() > 1 && !$image->coalesced) {
+		$image = $image->coalesceImages();
+		$image->coalesced = true;
+	}
+	foreach ($image as $frame) {
+		$image->cropImage($width, $height, $x, $y);
+		$image->setImagePage($width, $height, 0, 0);
+	}
+}
+
+function resize_image($image, $width, $height) {
+	if ($image->count() > 1 && $image->getImageColors() < 200) return $image;
+	if ($image->count() > 1 && $width * $height > ($image->getImageWidth() * $image->getImageHeight() * 0.8)) return $image;
+	if ($image->getImageWidth() == $width && $image->getImageHeight() == $height) return $image;
+	if ($image->count() > 1 && !$image->coalesced) {
+		$image = $image->coalesceImages();
+		$image->coalesced = true;
+	}
+	foreach ($image as $frame) {
+		$image->resizeImage($width, $height, imagick::FILTER_MITCHELL, 1);
+	}
+	return $image;
+}
+
 function benchmark($start) {
   return round((microtime(TRUE) - $start)*1000);
 }

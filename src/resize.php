@@ -21,15 +21,12 @@ if ($image) {
   $w = $image->getImageWidth();
   $h = $image->getImageHeight();
   $GLOBALS['stats']['pixelcount_input'] = $neww*$newh;
-  $animated = $image->getImageIterations() > 0;
-  if ($animated) $image->coalesceImages();
-  $GLOBALS['stats']['animated'] = $animated;
+  $GLOBALS['stats']['animated'] = $image->count() > 1;
 
   if ($is_cropped) {
     $tmpw = round(($cropright-$cropleft)*$w);
     $tmph = round(($cropbottom-$croptop)*$h);
-    $image->cropImage($tmpw, $tmph, $cropleft*$w, $croptop*$h);
-    $image->setImagePage($tmpw, $tmph, 0, 0);
+    $image = crop_image($image, $tmpw, $tmph, $cropleft*$w, $croptop*$h);
     $w = $tmpw;
     $h = $tmph;
   }
@@ -45,8 +42,7 @@ if ($image) {
       $croph = round($cropw/$boxar);
     }
     if ($cropw != $w || $croph != $h) {
-      $image->cropImage($cropw, $croph, ($w-$cropw)/2.0, ($h-$croph)/2.0);
-      $image->setImagePage($cropw, $croph, 0, 0);
+      $image = crop_image($image, $cropw, $croph, ($w-$cropw)/2.0, ($h-$croph)/2.0);
     }
     $neww = $boxw;
     $newh = $boxh;
@@ -60,8 +56,9 @@ if ($image) {
     }
   }
   $GLOBALS['stats']['pixelcount_output'] = $neww*$newh;
-  $image->resizeImage($neww, $newh, imagick::FILTER_MITCHELL, 1);
-  if ($animated) $image->deconstructImages();
+
+  $image = resize_image($image, $neww, $newh);
+  if ($image->coalesced) $image = $image->deconstructImages();
 
   /* OPTIMIZE */
 
