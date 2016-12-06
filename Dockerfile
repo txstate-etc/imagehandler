@@ -8,6 +8,12 @@ RUN pecl install imagick && docker-php-ext-enable imagick
 RUN a2enmod rewrite
 RUN a2enmod ssl
 
+# build and install gifsicle
+RUN apt-get install -y build-essential
+COPY gifsicle-1.88 /gifsicle
+RUN cd /gifsicle && ./configure --disable-gifview && make && make install
+RUN apt-get purge -y build-essential && apt-get autoremove -y
+
 RUN apt-get clean && rm -rf /tmp/* /var/tmp*
 
 COPY policy.xml /etc/ImageMagick-6/policy.xml

@@ -89,6 +89,19 @@ if ($image) {
   $image->setOption('png:compression-strategy', '1');
   $image->setOption('png:exclude-chunk', 'all');
 
+  if ($image->count() > 1) {
+    mkdir('/var/cache/resize/gifsicle/', 0755, true);
+    $image->setResourceLimit(imagick::RESOURCETYPE_MEMORY, 80000000);
+    $image->setResourceLimit(imagick::RESOURCETYPE_MAP, 80000000);
+    $tmppath = '/var/cache/resize/gifsicle/tmp'.substr( md5(rand()), 0, 7);
+    $image->writeImages($tmppath, true);
+    $image->clear();
+    system('gifsicle --optimize=2 --no-extensions '.$tmppath.' -o '.$tmppath.'-o');
+    $image = new Imagick($tmppath.'-o');
+    unlink($tmppath);
+    unlink($tmppath.'-o');
+  }
+
   $blob = $image->getImagesBlob();
 
   $GLOBALS['stats']['time_process'] = benchmark($start);
