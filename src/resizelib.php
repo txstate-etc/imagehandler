@@ -121,6 +121,11 @@ function print_cache_image_or_return_original($requesturl, $etag, $lastmodified)
   $filepath = $path.'/data';
   $etagpath = $path.'/etag';
 
+  if (file_exists($filepath)) {
+    $filelmtime =  filemtime($filepath);
+    $filelm = gmdate("D, d M Y H:i:s", $filelmtime);
+  }
+
   $start = microtime(TRUE);
   $image = get_raw_image($requesturl, $filelm);
   $GLOBALS['stats']['time_retrieve'] = benchmark($start);
@@ -130,8 +135,6 @@ function print_cache_image_or_return_original($requesturl, $etag, $lastmodified)
   if (!file_exists($filepath) || !file_exists($etagpath)) return $image;
   $GLOBALS['stats']['cache_hit'] = TRUE;
 
-  $filelmtime =  filemtime($filepath);
-  $filelm = gmdate("D, d M Y H:i:s", $filelmtime);
   $fileetag = trim(file_get_contents($etagpath));
 
   if ((!$etag && !$lastmodified) || ($etag && trim($etag) != $fileetag) || ($lastmodified && strtotime($lastmodified) < $filelmtime)) {
