@@ -24,6 +24,7 @@ function crop_image($image, $width, $height, $x, $y) {
 		$image->cropImage($width, $height, $x, $y);
 		$image->setImagePage($width, $height, 0, 0);
 	}
+	return $image;
 }
 
 function resize_image($image, $width, $height) {
