@@ -90,7 +90,7 @@ if ($image) {
   $image->setOption('png:exclude-chunk', 'all');
 
   if ($image->count() > 1) {
-    mkdir('/var/cache/resize/gifsicle/', 0755, true);
+    if (!file_exists('/var/cache/resize/gifsicle/')) mkdir('/var/cache/resize/gifsicle/', 0755, true);
     $image->setResourceLimit(imagick::RESOURCETYPE_MEMORY, 80000000);
     $image->setResourceLimit(imagick::RESOURCETYPE_MAP, 80000000);
     $tmppath = '/var/cache/resize/gifsicle/tmp'.substr( md5(rand()), 0, 7);
