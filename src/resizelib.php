@@ -164,12 +164,14 @@ function print_cache_image_or_return_original($requesturl, $etag, $lastmodified)
 
 function print_blob($blob, $lastmod, $etag) {
   $start = microtime(TRUE);
+  $blobsize = strlen($blob);
   header('Content-Type: '.get_mime_type($blob));
-  header("Last-Modified: ".$lastmod." GMT");
+  header('Last-Modified: '.$lastmod." GMT");
+  header('Content-Length: '.$blobsize);
   if ($etag) header("Etag: $etag");
   echo $blob;
   flush();
-  $GLOBALS['stats']['filesize_output'] = strlen($blob);
+  $GLOBALS['stats']['filesize_output'] = $blobsize;
   $GLOBALS['stats']['time_stream'] = benchmark($start);
 }
 
@@ -177,7 +179,7 @@ function print_304($lastmod, $etag) {
   $GLOBALS['stats']['not_modified'] = TRUE;
   $start = microtime(TRUE);
   header('HTTP/1.1 304 Not Modified');
-  header("Last-Modified: ".$lastmod." GMT");
+  header('Last-Modified: '.$lastmod.' GMT');
   if ($etag) header("Etag: $etag");
   flush();
   $GLOBALS['stats']['time_stream'] = benchmark($start);
