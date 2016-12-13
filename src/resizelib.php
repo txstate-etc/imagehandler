@@ -121,23 +121,37 @@ function print_cache_image_or_return_original($requesturl, $etag, $lastmodified)
   $filepath = $path.'/data';
   $etagpath = $path.'/etag';
 
+  // if we have a cache entry for this request url, we'll send an
+  // If-Modified-Since header to the original source.
+  // If we get back a 304, we'll know our cache entry is still valid
   if (file_exists($filepath)) {
     $filelmtime =  filemtime($filepath);
     $filelm = gmdate("D, d M Y H:i:s", $filelmtime);
+  } else {
+    $filelm = '';
   }
 
+  // if $filelm is empty, get_raw_image won't send the If-Modified-Since
+  // and we will definitely get binary back
   $start = microtime(TRUE);
   $image = get_raw_image($requesturl, $filelm);
   $GLOBALS['stats']['time_retrieve'] = benchmark($start);
 
+  // if we got binary back, it wasn't a 304 so our cache is no good
+  // return the source image so that it can be processed by the rest of resize.php
   if ($image) return $image;
 
-  if (!file_exists($filepath) || !file_exists($etagpath)) return $image;
+  // if we get this far, we have a cache hit, let's figure out whether to return
+  // the binary or a 304 Not Modified header
   $GLOBALS['stats']['cache_hit'] = TRUE;
 
-  $fileetag = trim(file_get_contents($etagpath));
+  // grab the etag for this cache entry, so that we can compare it against
+  // the etag a client may have sent us
+  // (we are supporting both If-Modified-Since and If-None-Match)
+  if ($etag && file_exists($etagpath)) $fileetag = trim(file_get_contents($etagpath));
 
   if ((!$etag && !$lastmodified) || ($etag && trim($etag) != $fileetag) || ($lastmodified && strtotime($lastmodified) < $filelmtime)) {
+    // client's cache is out of date (but our cache entry is good), send them the binary
     $start = microtime(TRUE);
     $cachedimage = file_get_contents($filepath);
     $GLOBALS['stats']['time_cacheread'] = benchmark($start);
@@ -152,7 +166,7 @@ function print_blob($blob, $lastmod, $etag) {
   $start = microtime(TRUE);
   header('Content-Type: '.get_mime_type($blob));
   header("Last-Modified: ".$lastmod." GMT");
-  header("Etag: $etag");
+  if ($etag) header("Etag: $etag");
   echo $blob;
   flush();
   $GLOBALS['stats']['filesize_output'] = strlen($blob);
@@ -164,7 +178,7 @@ function print_304($lastmod, $etag) {
   $start = microtime(TRUE);
   header('HTTP/1.1 304 Not Modified');
   header("Last-Modified: ".$lastmod." GMT");
-  header("Etag: $etag");
+  if ($etag) header("Etag: $etag");
   flush();
   $GLOBALS['stats']['time_stream'] = benchmark($start);
 }
