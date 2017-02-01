@@ -1,5 +1,6 @@
 <?php
 error_reporting(E_WARNING | E_PARSE);
+ignore_user_abort(TRUE);
 $totalstart = microtime(TRUE);
 require_once('resizelib.php');
 
