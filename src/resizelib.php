@@ -113,7 +113,9 @@ function store_image($path, $blob, $etag) {
 }
 
 function store_resized_image($requesturl, $blob, $etag) {
-  return store_image(get_cache_path($requesturl), $blob, $etag);
+  $start = microtime(TRUE);
+  store_image(get_cache_path($requesturl), $blob, $etag);
+  $GLOBALS['stats']['time_cachewrite'] = benchmark($start);
 }
 
 function print_cache_image_or_return_original($requesturl, $etag, $lastmodified) {

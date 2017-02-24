@@ -1,9 +1,8 @@
 <?php
 error_reporting(E_WARNING | E_PARSE);
-ignore_user_abort(TRUE);
 $totalstart = microtime(TRUE);
-
 require_once('resizelib.php');
+register_shutdown_function('log_event_statistics');
 
 $croptop = $_GET['croptop'] ?: 0.0;
 $cropleft = $_GET['cropleft'] ?: 0.0;
@@ -108,14 +107,11 @@ if ($image) {
   }
 
   $blob = $image->getImagesBlob();
+  register_shutdown_function('store_resized_image', $_SERVER['REQUEST_URI'], $blob, $etag);
 
   $GLOBALS['stats']['time_process'] = benchmark($start);
 
   print_blob($blob, gmdate("D, d M Y H:i:s"), md5($blob));
-  $start = microtime(TRUE);
-  store_resized_image($_SERVER['REQUEST_URI'], $blob, $etag);
-  $GLOBALS['stats']['time_cachewrite'] = benchmark($start);
 }
 $GLOBALS['stats']['time_total'] = benchmark($totalstart);
-log_event_statistics();
 ?>
