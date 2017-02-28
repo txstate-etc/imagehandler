@@ -35,10 +35,7 @@ if ($image) {
 
   $ar = (1.0*$w)/(1.0*$h);
   $boxar = $boxh > 0 ? (1.0*$boxw)/(1.0*$boxh) : 0;
-  if ($boxar == 0) {
-    $neww = $w;
-    $newh = $h;
-  } elseif ($clip && $boxw > 0 && $boxh > 0) {
+  if ($clip && $boxw > 0 && $boxh > 0) {
     if ($ar > $boxar) { // image is too wide
       $croph = $h;
       $cropw = round($croph*$boxar);
