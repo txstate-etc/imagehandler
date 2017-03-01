@@ -13,7 +13,6 @@ $GLOBALS['stats']['cropped'] = $is_cropped;
 
 $image = print_cache_image_or_return_original($_SERVER['REQUEST_URI'], $_SERVER['HTTP_IF_NONE_MATCH'], $_SERVER['HTTP_IF_MODIFIED_SINCE']);
 if ($image) {
-  $image->setResourceLimit(imagick::RESOURCETYPE_THREAD, 1);
   $start = microtime(TRUE);
   $boxw = $_GET['width'] ?: 0;
   $boxh = $_GET['height'] ?: 0;
