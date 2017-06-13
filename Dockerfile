@@ -7,6 +7,7 @@ RUN apt-get install -y libmagickwand-dev
 RUN pecl install imagick && docker-php-ext-enable imagick
 RUN a2enmod rewrite
 RUN a2enmod ssl
+RUN a2disconf security
 
 # build and install gifsicle
 RUN apt-get install -y build-essential
@@ -20,8 +21,9 @@ COPY policy.xml /etc/ImageMagick-6/policy.xml
 COPY apache/secure.conf /etc/apache2/sites-enabled
 COPY apache/mpm_prefork.conf /etc/apache2/mods-available
 COPY apache/php-overrides.ini /usr/local/etc/php/conf.d/php-overrides.ini
-COPY ssl/private.key /securekeys/private.key
-COPY ssl/cert.pem /securekeys/cert.pem
+RUN mkdir /securekeys
+RUN openssl req -newkey rsa:4096 -nodes -keyout /securekeys/private.key -out /securekeys/req.csr -subj "/CN=localhost"
+RUN openssl x509 -req -days 3650 -in /securekeys/req.csr -signkey /securekeys/private.key -out /securekeys/cert.pem
 COPY cmd.sh /cmd.sh
 COPY src/ /var/www/html/
 RUN mkdir -p /var/cache/resize && chown www-data:www-data /var/cache/resize
