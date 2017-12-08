@@ -10,16 +10,11 @@ function get_mime_type($imagedata) {
 
 function check_magic_bytes($imagedata) {
   $mimetype = get_mime_type($imagedata);
-  $GLOBALS['stats']['image_type'] = $mimetype;
   return (0===strpos($mimetype, 'image/'));
 }
 
 function crop_image($image, $width, $height, $x, $y) {
   if ($image->getImageWidth() == $width && $image->getImageHeight() == $height) return $image;
-  if ($image->getNumberImages() > 1 && !$image->coalesced) {
-    $image = $image->coalesceImages();
-    $image->coalesced = true;
-  }
   for ($i = 0; $i < $image->getNumberImages(); $i++) {
     $image->setimageindex($i);
     $image->cropImage($width, $height, $x, $y);
@@ -29,13 +24,8 @@ function crop_image($image, $width, $height, $x, $y) {
 }
 
 function resize_image($image, $width, $height) {
-  if ($image->getNumberImages() > 1 && $image->getImageColors() < 200) return $image;
   if ($image->getNumberImages() > 1 && $width * $height > ($image->getImageWidth() * $image->getImageHeight() * 0.8)) return $image;
   if ($image->getImageWidth() == $width && $image->getImageHeight() == $height) return $image;
-  if ($image->getNumberImages() > 1 && !$image->coalesced) {
-    $image = $image->coalesceImages();
-    $image->coalesced = true;
-  }
   for ($i = 0; $i < $image->getNumberImages(); $i++) {
     $image->setimageindex($i);
     $image->resizeImage($width, $height, Gmagick::FILTER_MITCHELL, 1);

@@ -22,12 +22,12 @@ if ($image) {
   $w = $image->getImageWidth();
   $h = $image->getImageHeight();
 
-  $GLOBALS['stats']['pixelcount_input'] = $neww*$newh;
+  $GLOBALS['stats']['pixelcount_input'] = $w*$h;
   $GLOBALS['stats']['animated'] = $image->getNumberImages() > 1;
 
   $GLOBALS['stats']['format_input'] = $image->getImageFormat();
   // determine whether we should change format to jpg
-  if (in_array(strtolower($image->getImageFormat()), array('png','tif','tiff','png16','png8'))) {
+  if (in_array(strtolower($image->getImageFormat()), array('png','png24','png8','bigtiff','tif','tiff','bmp', 'bmp2', 'bmp3'))) {
     if ($image->getImageChannelExtrema(Gmagick::CHANNEL_OPACITY)['maxima'] > 0)
       $image->setImageFormat("PNG");
     elseif ($image->getImageColors() < 255)
@@ -74,9 +74,9 @@ if ($image) {
     }
   }
   $GLOBALS['stats']['pixelcount_output'] = $neww*$newh;
+  $GLOBALS['stats']['resolution_output'] = "$neww x $newh";
 
   $image = resize_image($image, $neww, $newh);
-  if ($image->coalesced) $image = $image->deconstructImages();
 
   // not sure what these do, found some advice to set them this way
   $image->setimageinterlacescheme(Gmagick::INTERLACE_NO);
@@ -100,6 +100,7 @@ if ($image) {
     unlink($tmppath.'-o');
   }
 
+  $image->setimageindex(0);
   $blob = $image->getImagesBlob();
   store_resized_image($_SERVER['REQUEST_URI'], $blob, $etag);
 
