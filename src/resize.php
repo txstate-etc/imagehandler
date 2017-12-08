@@ -23,6 +23,7 @@ if ($image) {
   $h = $image->getImageHeight();
 
   $GLOBALS['stats']['pixelcount_input'] = $w*$h;
+  $GLOBALS['stats']['resolution_input'] = "$w x $h";
   $GLOBALS['stats']['animated'] = $image->getNumberImages() > 1;
 
   $GLOBALS['stats']['format_input'] = $image->getImageFormat();
@@ -85,9 +86,9 @@ if ($image) {
   $image->stripimage();
 
   // set PNG compression level
-  if (strtolower($image->getimageformat()) == "png") $image->setCompressionQuality(95);
-  // set JPEG compression quality
-  else $image->setCompressionQuality($quality);
+  if (strtolower($image->getimageformat()) == "png") $quality = 95;
+  $image->setCompressionQuality($quality);
+  $GLOBALS['stats']['quality'] = $quality;
 
   if ($image->getNumberImages() > 1) {
     if (!file_exists('/var/cache/resize/gifsicle/')) mkdir('/var/cache/resize/gifsicle/', 0755, true);
