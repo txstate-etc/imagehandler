@@ -21,6 +21,24 @@ if ($image) {
 
   $w = $image->getImageWidth();
   $h = $image->getImageHeight();
+
+  $GLOBALS['stats']['format_input'] = $image->getImageFormat();
+
+  // determine whether we should change format to jpg
+  if (in_array(strtolower($image->getImageFormat()), array('png','tif','tiff','png16','png8'))) {
+    if ($image->getImageChannelExtrema(Gmagick::CHANNEL_OPACITY)['maxima'] > 0)
+      $image->setImageFormat("PNG");
+    elseif ($image->getImageColors() < 255)
+      $image->setImageFormat("PNG8");
+    elseif ($image->getImageColors() < 10000)
+      $image->setImageFormat("PNG");
+    else {
+      $image->setImageFormat("JPG");
+      $quality = 90;
+    }
+  }
+  $GLOBALS['stats']['format_output'] = $image->getImageFormat();
+
   $GLOBALS['stats']['pixelcount_input'] = $neww*$newh;
   $GLOBALS['stats']['animated'] = $image->getNumberImages() > 1;
 
@@ -84,7 +102,7 @@ if ($image) {
   $image->stripimage();
 
   // set PNG compression level
-  if ($image->getimageformat() == "png") $image->setCompressionQuality(95);
+  if (strtolower($image->getimageformat()) == "png") $image->setCompressionQuality(95);
   // set JPEG compression quality
   else $image->setCompressionQuality($quality);
 
@@ -105,7 +123,7 @@ if ($image) {
   $GLOBALS['stats']['time_process'] = benchmark($start);
 
   print_blob($blob, gmdate("D, d M Y H:i:s"), md5($blob));
-  log_event_statistics();
 }
 $GLOBALS['stats']['time_total'] = benchmark($totalstart);
+log_event_statistics();
 ?>
