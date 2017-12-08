@@ -1,10 +1,9 @@
-FROM php:5.6-apache
+FROM php:apache
 
 RUN apt-get update
 RUN apt-get upgrade -y
-RUN apt-get install -y imagemagick
-RUN apt-get install -y libmagickwand-dev
-RUN pecl install imagick && docker-php-ext-enable imagick
+RUN apt-get install -y libgraphicsmagick1-dev
+RUN pecl install gmagick && docker-php-ext-enable gmagick
 RUN a2enmod rewrite
 RUN a2enmod ssl
 RUN a2disconf security
@@ -17,7 +16,6 @@ RUN apt-get purge -y build-essential && apt-get autoremove -y
 
 RUN apt-get clean && rm -rf /tmp/* /var/tmp*
 
-COPY policy.xml /etc/ImageMagick-6/policy.xml
 COPY apache/secure.conf /etc/apache2/sites-enabled
 COPY apache/mpm_prefork.conf /etc/apache2/mods-available
 COPY apache/php-overrides.ini /usr/local/etc/php/conf.d/php-overrides.ini

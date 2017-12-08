@@ -1,5 +1,5 @@
 <?php
-error_reporting(E_WARNING | E_PARSE);
+error_reporting(E_WARNING | E_PARSE | E_ERROR);
 ignore_user_abort(TRUE);
 $totalstart = microtime(TRUE);
 require_once('resizelib.php');
@@ -22,7 +22,7 @@ if ($image) {
   $w = $image->getImageWidth();
   $h = $image->getImageHeight();
   $GLOBALS['stats']['pixelcount_input'] = $neww*$newh;
-  $GLOBALS['stats']['animated'] = $image->count() > 1;
+  $GLOBALS['stats']['animated'] = $image->getNumberImages() > 1;
 
   $GLOBALS['stats']['format_input'] = $image->getImageFormat();
   // determine whether we should change format to jpg
@@ -77,44 +77,24 @@ if ($image) {
   $image = resize_image($image, $neww, $newh);
   if ($image->coalesced) $image = $image->deconstructImages();
 
-  /* OPTIMIZE */
-
-  $image->setOption('jpeg:fancy-upsampling', 'off');
-
   // not sure what these do, found some advice to set them this way
-  $image->setInterlaceScheme(imagick::INTERLACE_NO);
-  $image->setColorspace(imagick::COLORSPACE_SRGB);
+  $image->setimageinterlacescheme(Gmagick::INTERLACE_NO);
 
   // get rid of excess metadata
-  $image->stripImage();
-  $image->deleteImageProperty('comment');
-  $image->deleteImageProperty('Thumb::URI');
-  $image->deleteImageProperty('Thumb::MTime');
-  $image->deleteImageProperty('Thumb::Size');
-  $image->deleteImageProperty('Thumb::Mimetype');
-  $image->deleteImageProperty('software');
-  $image->deleteImageProperty('Thumb::Image::Width');
-  $image->deleteImageProperty('Thumb::Image::Height');
-  $image->deleteImageProperty('Thumb::Document::Pages');
-
-  // set JPEG compression quality
-  $image->setImageCompressionQuality($quality);
+  $image->stripimage();
 
   // set PNG compression level
-  $image->setOption('png:compression-filter', '5');
-  $image->setOption('png:compression-level', '9');
-  $image->setOption('png:compression-strategy', '1');
-  $image->setOption('png:exclude-chunk', 'all');
+  if ($image->getimageformat() == "png") $image->setCompressionQuality(95);
+  // set JPEG compression quality
+  else $image->setCompressionQuality($quality);
 
-  if ($image->count() > 1) {
+  if ($image->getNumberImages() > 1) {
     if (!file_exists('/var/cache/resize/gifsicle/')) mkdir('/var/cache/resize/gifsicle/', 0755, true);
-    $image->setResourceLimit(imagick::RESOURCETYPE_MEMORY, 80000000);
-    $image->setResourceLimit(imagick::RESOURCETYPE_MAP, 80000000);
     $tmppath = '/var/cache/resize/gifsicle/tmp'.substr( md5(rand()), 0, 7);
-    $image->writeImages($tmppath, true);
+    $image->writeimage($tmppath, true);
     $image->clear();
     system('gifsicle --optimize=2 --no-extensions '.$tmppath.' -o '.$tmppath.'-o');
-    $image = new Imagick($tmppath.'-o');
+    $image = new Gmagick($tmppath.'-o');
     unlink($tmppath);
     unlink($tmppath.'-o');
   }
