@@ -193,5 +193,6 @@ function log_event_statistics() {
   $stats['referer'] = $_SERVER['HTTP_REFERER'];
   $stats['hostname'] = gethostname();
   $stats['environment'] = $_ENV['IMAGEHANDLERSTAGE'] ?: 'development';
+  if ($stats['environment'] == 'development') error_log(print_r($stats, TRUE));
 }
 ?>
