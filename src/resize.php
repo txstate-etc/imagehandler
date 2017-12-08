@@ -22,30 +22,13 @@ if ($image) {
   $w = $image->getImageWidth();
   $h = $image->getImageHeight();
 
-  $GLOBALS['stats']['format_input'] = $image->getImageFormat();
-
-  // determine whether we should change format to jpg
-  if (in_array(strtolower($image->getImageFormat()), array('png','tif','tiff','png16','png8'))) {
-    if ($image->getImageChannelExtrema(Gmagick::CHANNEL_OPACITY)['maxima'] > 0)
-      $image->setImageFormat("PNG");
-    elseif ($image->getImageColors() < 255)
-      $image->setImageFormat("PNG8");
-    elseif ($image->getImageColors() < 10000)
-      $image->setImageFormat("PNG");
-    else {
-      $image->setImageFormat("JPG");
-      $quality = 90;
-    }
-  }
-  $GLOBALS['stats']['format_output'] = $image->getImageFormat();
-
   $GLOBALS['stats']['pixelcount_input'] = $neww*$newh;
   $GLOBALS['stats']['animated'] = $image->getNumberImages() > 1;
 
   $GLOBALS['stats']['format_input'] = $image->getImageFormat();
   // determine whether we should change format to jpg
   if (in_array(strtolower($image->getImageFormat()), array('png','tif','tiff','png16','png8'))) {
-    if ($image->getImageChannelRange(imagick::CHANNEL_OPACITY)['maxima'] > 0)
+    if ($image->getImageChannelExtrema(Gmagick::CHANNEL_OPACITY)['maxima'] > 0)
       $image->setImageFormat("PNG");
     elseif ($image->getImageColors() < 255)
       $image->setImageFormat("PNG8");
