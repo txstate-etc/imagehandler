@@ -25,6 +25,7 @@ if ($image) {
   $GLOBALS['stats']['pixelcount_input'] = $w*$h;
   $GLOBALS['stats']['resolution_input'] = "$w x $h";
   $GLOBALS['stats']['animated'] = $image->getNumberImages() > 1;
+  $GLOBALS['stats']['colors'] = $image->getImageColors();
 
   $GLOBALS['stats']['format_input'] = $image->getImageFormat();
   // determine whether we should change format to jpg
