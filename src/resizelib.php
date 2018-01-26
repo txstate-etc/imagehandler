@@ -42,11 +42,7 @@ function get_raw_image($requesturl, $lastmod='') {
   $etagpath = $path.'/etag';
   if (file_exists($etagpath)) $fileetag = file_get_contents($etagpath);
 
-  $basepath = "/imagehandler/scaler";
-  $location = substr($requesturl, strlen($basepath));
-  $urlinfo = parse_url("http:/".$location);
-  $info = $GLOBALS['auth_map'][$urlinfo['host']];
-  $imglocation = ($info[2] == 'SSL' ? 'https:/' : 'http:/').$location;
+  $imglocation = request_target($requesturl);
 
   $headers = '';
   if ($lastmod) $headers .= "If-Modified-Since: ".$lastmod." GMT\r\n";
@@ -80,14 +76,38 @@ function get_raw_image($requesturl, $lastmod='') {
   return $image;
 }
 
+function request_without_query($requesturl) {
+  $ret = $requesturl;
+  if (strpos($requesturl, '?') !== false) $ret = implode('?', explode('?', $requesturl, -1));
+  $ret = urldecode($ret);
+  return $ret;
+}
+
+function base64url_decode($data) {
+    return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
+}
+
+function request_target($requesturl) {
+  $path = explode('/', request_without_query($requesturl));
+  if ($path[2] == 'scaler_base64') {
+    return base64url_decode($path[3]);
+  } else {
+    $location = implode('/', array_slice($path, 3));
+    $urlinfo = parse_url("http:/".$location);
+    $info = $GLOBALS['auth_map'][$urlinfo['host']];
+    return ($info[2] == 'SSL' ? 'https:/' : 'http:/').$location;
+  }
+}
+
 function get_raw_cache_path($requesturl) {
-  list ($requestwithoutquery) = preg_split('/\?/', $requesturl, 2);
-  return get_cache_path($requestwithoutquery);
+  return get_cache_path(request_without_query($requesturl));
 }
 
 function get_cache_path($requesturl) {
   $info = explode('/',$requesturl);
   $signature = implode('/', array_slice($info, 4));
+  if ($info[2] == 'scaler_base64') $signature = implode('/', array_slice($info, 3));
+
   $hash = md5($signature);
   $cachepath = substr($hash,0,2).'/'.substr($hash,2,2).'/'.substr($hash,4,2).'/'.substr($hash,6);
   $fullcachepath = '/var/cache/resize/'.$cachepath;
