@@ -43,6 +43,8 @@ function get_raw_image($requesturl, $lastmod='') {
   if (file_exists($etagpath)) $fileetag = file_get_contents($etagpath);
 
   $imglocation = request_target($requesturl);
+  $urlinfo = parse_url($imglocation);
+  $info = $GLOBALS['auth_map'][$urlinfo['host']];
 
   $headers = '';
   if ($lastmod) $headers .= "If-Modified-Since: ".$lastmod." GMT\r\n";
@@ -79,7 +81,6 @@ function get_raw_image($requesturl, $lastmod='') {
 function request_without_query($requesturl) {
   $ret = $requesturl;
   if (strpos($requesturl, '?') !== false) $ret = implode('?', explode('?', $requesturl, -1));
-  $ret = urldecode($ret);
   return $ret;
 }
 
@@ -93,14 +94,15 @@ function request_target($requesturl) {
     return base64url_decode($path[3]);
   } else {
     $location = implode('/', array_slice($path, 3));
-    $urlinfo = parse_url("http:/".$location);
+    $urlinfo = parse_url("http://".$location);
     $info = $GLOBALS['auth_map'][$urlinfo['host']];
-    return ($info[2] == 'SSL' ? 'https:/' : 'http:/').$location;
+    return ($info[2] == 'SSL' ? 'https://' : 'http://').$location;
   }
 }
 
 function get_raw_cache_path($requesturl) {
-  return get_cache_path(request_without_query($requesturl));
+  list ($requestwithoutquery) = preg_split('/\?/', $requesturl, 2);
+  return get_cache_path($requestwithoutquery);
 }
 
 function get_cache_path($requesturl) {
