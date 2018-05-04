@@ -77,7 +77,6 @@ if ($image) {
   }
   $GLOBALS['stats']['pixelcount_output'] = $neww*$newh;
   $GLOBALS['stats']['resolution_output'] = "$neww x $newh";
-
   $image = resize_image($image, $neww, $newh);
 
   // not sure what these do, found some advice to set them this way
