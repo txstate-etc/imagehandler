@@ -3,6 +3,7 @@ FROM php:apache
 RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install -y libgraphicsmagick1-dev
+RUN docker-php-ext-install exif
 RUN pecl install gmagick-beta && docker-php-ext-enable gmagick
 RUN a2enmod rewrite
 RUN a2enmod ssl
