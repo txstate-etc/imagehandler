@@ -8,8 +8,7 @@ function get_mime_type($imagedata) {
   return $info->buffer($imagedata);
 }
 
-function check_magic_bytes($imagedata) {
-  $mimetype = get_mime_type($imagedata);
+function check_magic_bytes($mimetype) {
   return (0===strpos($mimetype, 'image/'));
 }
 
@@ -62,7 +61,8 @@ function get_raw_image($requesturl, $lastmod='') {
     if (md5($imgdata) == $fileetag) return false;
   }
 
-  if (!check_magic_bytes($imgdata)) {
+  $mimetype = get_mime_type($imgdata);
+  if (!check_magic_bytes($mimetype)) {
     // extra layer of security against exploits
     // imagemagick exploit found in the wild 2016-05-06
     http_response_code(400);
@@ -76,10 +76,13 @@ function get_raw_image($requesturl, $lastmod='') {
   $image = new Gmagick();
   $image->readImageBlob($imgdata);
 
-  $rotation = exif_read_data("data://image/jpeg;base64," . base64_encode($imgdata))['Orientation'];
-  if ($rotation == 3) $image->rotateimage('#000000', 180);
-  if ($rotation == 6) $image->rotateimage('#000000', 90);
-  if ($rotation == 8) $image->rotateimage('#000000', -90);
+  $exif = exif_read_data("data://"+$mimetype+";base64," . base64_encode($imgdata));
+  if ($exif) {
+  $rotation = $exif['Orientation'];
+    if ($rotation == 3) $image->rotateimage('#000000', 180);
+    if ($rotation == 6) $image->rotateimage('#000000', 90);
+    if ($rotation == 8) $image->rotateimage('#000000', -90);
+  }
 
   return $image;
 }
