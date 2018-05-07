@@ -76,9 +76,9 @@ function get_raw_image($requesturl, $lastmod='') {
   $image = new Gmagick();
   $image->readImageBlob($imgdata);
 
-  $exif = exif_read_data("data://"+$mimetype+";base64," . base64_encode($imgdata));
+  $exif = exif_read_data("data://".explode(';',$mimetype)[0].";base64," . base64_encode($imgdata));
   if ($exif) {
-  $rotation = $exif['Orientation'];
+    $rotation = $exif['Orientation'];
     if ($rotation == 3) $image->rotateimage('#000000', 180);
     if ($rotation == 6) $image->rotateimage('#000000', 90);
     if ($rotation == 8) $image->rotateimage('#000000', -90);
