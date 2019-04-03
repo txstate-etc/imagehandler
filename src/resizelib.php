@@ -79,8 +79,21 @@ function get_raw_image($requesturl, $lastmod='') {
   $exif = exif_read_data("data://".explode(';',$mimetype)[0].";base64," . base64_encode($imgdata));
   if ($exif) {
     $rotation = $exif['Orientation'];
+    if ($rotation == 2) {
+      $image->flipimage();
+      $image->rotateimage('#000000', 180);
+    }
     if ($rotation == 3) $image->rotateimage('#000000', 180);
+    if ($rotation == 4) $image->flipimage();
+    if ($rotation == 5) {
+      $image->flipimage();
+      $image->rotateimage('#000000', 90);
+    }
     if ($rotation == 6) $image->rotateimage('#000000', 90);
+    if ($rotation == 7) {
+      $image->flipimage();
+      $image->rotateimage('#000000', -90);
+    }
     if ($rotation == 8) $image->rotateimage('#000000', -90);
   }
 
@@ -105,6 +118,7 @@ function request_target($requesturl) {
     $location = implode('/', array_slice($path, 3));
     $urlinfo = parse_url("http://".$location);
     $info = $GLOBALS['auth_map'][$urlinfo['host']];
+    error_log(($info[2] == 'SSL' ? 'https://' : 'http://').$location);
     return ($info[2] == 'SSL' ? 'https://' : 'http://').$location;
   }
 }
