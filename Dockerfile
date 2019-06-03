@@ -23,12 +23,12 @@ COPY apache/php-overrides.ini /usr/local/etc/php/conf.d/php-overrides.ini
 RUN mkdir /securekeys
 RUN openssl req -newkey rsa:4096 -nodes -keyout /securekeys/private.key -out /securekeys/req.csr -subj "/CN=localhost"
 RUN openssl x509 -req -days 3650 -in /securekeys/req.csr -signkey /securekeys/private.key -out /securekeys/cert.pem
-COPY cmd.sh /cmd.sh
-COPY src/ /var/www/html/
 RUN mkdir -p /var/cache/resize && chown www-data:www-data /var/cache/resize
 RUN ln -s /var/cache/resize/.mounted /var/www/html/health-check
 ADD https://raw.githubusercontent.com/txstate-etc/SSLConfig/master/SSLConfig-TxState.conf /etc/apache2/conf-enabled/ZZZ-SSLConfig-TxState.conf
 RUN chsh -s /bin/bash www-data
+COPY cmd.sh /cmd.sh
+COPY src/ /var/www/html/
 
 EXPOSE 443
 
