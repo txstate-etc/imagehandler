@@ -45,7 +45,7 @@ function get_raw_image($requesturl, $lastmod='') {
   $urlinfo = parse_url($imglocation);
   $info = $GLOBALS['auth_map'][$urlinfo['host']];
 
-  $headers = '';
+  $headers = "User-Agent: TxState Image Handler\r\n";
   if ($lastmod) $headers .= "If-Modified-Since: ".$lastmod." GMT\r\n";
   if ($info[0]) $headers .= "Authorization: Basic " . base64_encode($info[0].':'.$info[1])."\r\n";
 
@@ -159,7 +159,6 @@ function print_cache_image_or_return_original($requesturl, $etag, $lastmodified)
   $path = get_cache_path($requesturl);
   $filepath = $path.'/data';
   $etagpath = $path.'/etag';
-
   // if we have a cache entry for this request url, we'll send an
   // If-Modified-Since header to the original source.
   // If we get back a 304, we'll know our cache entry is still valid
@@ -169,6 +168,7 @@ function print_cache_image_or_return_original($requesturl, $etag, $lastmodified)
   } else {
     $filelm = '';
   }
+  error_log('checked mtime');
 
   // if $filelm is empty, get_raw_image won't send the If-Modified-Since
   // and we will definitely get binary back
