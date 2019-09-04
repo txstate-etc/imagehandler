@@ -2,8 +2,8 @@ FROM php:apache as gifsicle
 # build and install gifsicle
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y build-essential automake git
-RUN git clone https://github.com/kohler/gifsicle
-RUN cd gifsicle
+RUN git clone https://github.com/kohler/gifsicle /gifsicle
+WORKDIR /gifsicle
 RUN git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
 RUN autoreconf -i
 RUN ./configure --disable-gifview && make && make install
