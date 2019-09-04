@@ -1,21 +1,21 @@
+FROM php:apache as gifsicle
+# build and install gifsicle
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y build-essential automake git
+RUN git clone https://github.com/kohler/gifsicle
+RUN cd gifsicle
+RUN git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
+RUN autoreconf -i
+RUN ./configure --disable-gifview && make && make install
+
 FROM php:apache
 
-RUN apt-get update
-RUN apt-get upgrade -y
-RUN apt-get install -y libgraphicsmagick1-dev
-RUN docker-php-ext-install exif
-RUN pecl install gmagick-beta && docker-php-ext-enable gmagick
-RUN a2enmod rewrite
-RUN a2enmod ssl
-RUN a2disconf security
-
-# build and install gifsicle
-RUN apt-get install -y build-essential
-COPY gifsicle-1.88 /gifsicle
-RUN cd /gifsicle && ./configure --disable-gifview && make && make install
-RUN apt-get purge -y build-essential && apt-get autoremove -y
-
-RUN apt-get clean && rm -rf /tmp/* /var/tmp*
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y libgraphicsmagick1-dev && \
+    docker-php-ext-install exif && \
+    pecl install gmagick-beta && docker-php-ext-enable gmagick && \
+    a2enmod rewrite && a2enmod ssl && a2disconf security && \
+    apt-get clean && rm -rf /tmp/* /var/tmp*
 
 COPY apache/secure.conf /etc/apache2/sites-enabled
 COPY apache/mpm_prefork.conf /etc/apache2/mods-available
@@ -29,6 +29,7 @@ ADD https://raw.githubusercontent.com/txstate-etc/SSLConfig/master/SSLConfig-TxS
 RUN chsh -s /bin/bash www-data
 COPY cmd.sh /cmd.sh
 COPY src/ /var/www/html/
+COPY --from=gifsicle /usr/local/bin/gifsicle /usr/local/bin/gifsicle
 
 EXPOSE 443
 
