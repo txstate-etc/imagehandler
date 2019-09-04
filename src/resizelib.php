@@ -170,7 +170,6 @@ function print_cache_image_or_return_original($requesturl, $etag, $lastmodified)
   } else {
     $filelm = '';
   }
-  error_log('checked mtime');
 
   // if $filelm is empty, get_raw_image won't send the If-Modified-Since
   // and we will definitely get binary back
