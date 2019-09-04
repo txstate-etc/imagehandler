@@ -57,7 +57,9 @@ function get_raw_image($requesturl, $lastmod='') {
   );
   $imgdata = file_get_contents($imglocation, false, stream_context_create($context));
   if ($lastmod) {
-    if (preg_match('/304/', $http_response_header[0])) return false;
+    foreach ($http_response_header as $header) {
+      if (preg_match('/HTTP\/.*304/', $header)) return false;
+    }
     if (md5($imgdata) == $fileetag) return false;
   }
 
