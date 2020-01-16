@@ -103,11 +103,12 @@ if ($image) {
 
   $image->setimageindex(0);
   $blob = $image->getImagesBlob();
+  $etag = md5($blob);
   store_resized_image($_SERVER['REQUEST_URI'], $blob, $etag);
 
   $GLOBALS['stats']['time_process'] = benchmark($start);
 
-  print_blob($blob, gmdate("D, d M Y H:i:s"), md5($blob));
+  print_blob($blob, gmdate("D, d M Y H:i:s"), $etag);
 }
 $GLOBALS['stats']['time_total'] = benchmark($totalstart);
 log_event_statistics();
