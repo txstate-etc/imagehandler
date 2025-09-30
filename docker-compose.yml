@@ -8,5 +8,3 @@ services:
       IMAGEHANDLERAUTHJSON: '{ "github.com": ["", "", "SSL"] }'
     volumes:
       - ./src:/var/www/html
-    healthcheck:
-      test: ["CMD", "wget", "-O/dev/null", "-q", "http://127.0.0.1/health-check"]

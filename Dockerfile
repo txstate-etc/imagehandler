@@ -11,7 +11,7 @@ RUN ./configure --disable-gifview && make && make install
 FROM php:7-apache
 
 RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y libgraphicsmagick1-dev wget && \
+    apt-get install -y libgraphicsmagick1-dev && \
     docker-php-ext-install exif && \
     pecl install gmagick-beta && docker-php-ext-enable gmagick && \
     a2enmod rewrite && a2enmod ssl && a2enmod headers && a2disconf security && \
