@@ -1,0 +1,12 @@
+{
+  "type": "module",
+  "scripts": {
+    "playwright": "playwright test"
+  },
+  "dependencies": {
+    "@playwright/test": "~1.43.0"
+  },
+  "devDependencies": {
+    "eslint-config-love": "^47.0.0"
+  }
+}

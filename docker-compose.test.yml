@@ -1,0 +1,13 @@
+services:
+  imagehandler:
+    build: .
+    environment:
+      IMAGEHANDLERAUTHJSON: '{ "jsnider2.github.io": ["", "", "SSL"] }'
+    healthcheck:
+      test: ["CMD", "wget", "-O/dev/null", "-q", "http://127.0.0.1/health-check"]
+  test:
+    build:
+      context: .
+      dockerfile: test/Dockerfile
+    volumes:
+      - ./test/test-results:/test-results
