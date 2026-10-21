@@ -2,16 +2,22 @@ services:
   imagehandler:
     build: .
     environment:
-      IMAGEHANDLERAUTHJSON: '{ "jsnider2.github.io": ["", "", "SSL"] }'
+      IMAGEHANDLERAUTHJSON: '{ "jsnider2.github.io": ["", "", "SSL"], "origin": ["", "", ""] }'
     healthcheck:
       test: ["CMD", "curl", "-s", "http://127.0.0.1/health-check"]
       interval: 5s
       timeout: 5s
       retries: 6
+  origin:
+    image: nginx:stable-alpine
+    volumes:
+      - ./test/fixtures:/usr/share/nginx/html:ro
   test:
     depends_on:
       imagehandler:
         condition: service_healthy
+      origin:
+        condition: service_started
     build:
       context: .
       dockerfile: test/Dockerfile

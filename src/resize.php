@@ -4,20 +4,20 @@ ignore_user_abort(TRUE);
 $totalstart = microtime(TRUE);
 require_once('resizelib.php');
 
-$croptop = $_GET['croptop'] ?: 0.0;
-$cropleft = $_GET['cropleft'] ?: 0.0;
-$cropbottom = $_GET['cropbottom'] ?: 1.0;
-$cropright = $_GET['cropright'] ?: 1.0;
+$croptop = numeric_param('croptop', 0.0);
+$cropleft = numeric_param('cropleft', 0.0);
+$cropbottom = numeric_param('cropbottom', 1.0);
+$cropright = numeric_param('cropright', 1.0);
 $is_cropped = $croptop > 0 || $cropleft > 0 || $cropbottom < 1 || $cropright < 1;
 $GLOBALS['stats']['cropped'] = $is_cropped;
 
-$image = print_cache_image_or_return_original($_SERVER['REQUEST_URI'], $_SERVER['HTTP_IF_NONE_MATCH'], $_SERVER['HTTP_IF_MODIFIED_SINCE']);
+$image = print_cache_image_or_return_original($_SERVER['REQUEST_URI'], $_SERVER['HTTP_IF_NONE_MATCH'] ?? null, $_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? null);
 if ($image) {
   $start = microtime(TRUE);
-  $boxw = $_GET['width'] ?: 0;
-  $boxh = $_GET['height'] ?: 0;
-  $clip = $_GET['mode'] == 'clip';
-  $quality = $_GET['quality'] ?: 65;
+  $boxw = numeric_param('width', 0);
+  $boxh = numeric_param('height', 0);
+  $clip = ($_GET['mode'] ?? null) == 'clip';
+  $quality = ($_GET['quality'] ?? null) ?: 65;
 
   $w = $image->getImageWidth();
   $h = $image->getImageHeight();

@@ -1,4 +1,4 @@
-FROM php:7-apache AS gifsicle
+FROM php:8.5-apache AS gifsicle
 # build and install gifsicle
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y build-essential automake git
@@ -8,12 +8,15 @@ RUN git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
 RUN autoreconf -i
 RUN ./configure --disable-gifview && make && make install
 
-FROM php:7-apache
+FROM php:8.5-apache
 
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y libgraphicsmagick1-dev && \
     docker-php-ext-install exif && \
-    pecl install gmagick-beta && docker-php-ext-enable gmagick && \
+    # the last gmagick release (2.0.6RC1, 2021) doesn't build on PHP 8.5; use upstream master plus
+    # Remi Collet's open PHP 8.5 fix (https://github.com/vitoc/gmagick/pulls?q=author%3Aremicollet)
+    mkdir /tmp/gmagick && curl -sSL https://github.com/remicollet/gmagick/archive/2fed131a3e4a52b9cd9ef07d400ee16915d23d2a.tar.gz | tar xz -C /tmp/gmagick --strip-components=1 && \
+    docker-php-ext-install /tmp/gmagick && \
     a2enmod rewrite && a2enmod ssl && a2enmod headers && a2disconf security && \
     apt-get clean && rm -rf /tmp/* /var/tmp*
 

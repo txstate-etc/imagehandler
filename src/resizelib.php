@@ -8,6 +8,14 @@ function get_mime_type($imagedata) {
   return $info->buffer($imagedata);
 }
 
+// PHP 7 quietly coerced query strings used in math ("200abc" => 200, "abc" => 0) but
+// PHP 8 throws or compares them as strings, so coerce up front to keep the old behavior
+function numeric_param($name, $default) {
+  $value = $_GET[$name] ?? null;
+  if (!$value) return $default;
+  return is_string($value) ? floatval($value) : $value;
+}
+
 function check_magic_bytes($mimetype) {
   return (0===strpos($mimetype, 'image/'));
 }
@@ -39,15 +47,16 @@ function benchmark($start) {
 function get_raw_image($requesturl, $lastmod='') {
   $path = get_raw_cache_path($requesturl);
   $etagpath = $path.'/etag';
+  $fileetag = null;
   if (file_exists($etagpath)) $fileetag = file_get_contents($etagpath);
 
   $imglocation = request_target($requesturl);
   $urlinfo = parse_url($imglocation);
-  $info = $GLOBALS['auth_map'][$urlinfo['host']];
+  $info = $GLOBALS['auth_map'][$urlinfo['host'] ?? ''] ?? null;
 
   $headers = "User-Agent: TxState Image Handler\r\n";
   if ($lastmod) $headers .= "If-Modified-Since: ".$lastmod." GMT\r\n";
-  if ($info[0]) $headers .= "Authorization: Basic " . base64_encode($info[0].':'.$info[1])."\r\n";
+  if ($info[0] ?? null) $headers .= "Authorization: Basic " . base64_encode($info[0].':'.$info[1])."\r\n";
 
   $context = array(
     'http' => array(
@@ -55,9 +64,10 @@ function get_raw_image($requesturl, $lastmod='') {
       'header' => $headers
     )
   );
+  http_clear_last_response_headers();
   $imgdata = file_get_contents($imglocation, false, stream_context_create($context));
   if ($lastmod) {
-    foreach ($http_response_header as $header) {
+    foreach (http_get_last_response_headers() ?? array() as $header) {
       if (preg_match('/HTTP\/.*304/', $header)) return false;
     }
     if (md5($imgdata) == $fileetag) return false;
@@ -80,7 +90,7 @@ function get_raw_image($requesturl, $lastmod='') {
 
   $exif = exif_read_data("data://".explode(';',$mimetype)[0].";base64," . base64_encode($imgdata));
   if ($exif) {
-    $rotation = $exif['Orientation'];
+    $rotation = $exif['Orientation'] ?? null;
     if ($rotation == 2) {
       $image->flipimage();
       $image->rotateimage('#000000', 180);
@@ -119,9 +129,9 @@ function request_target($requesturl) {
   } else {
     $location = implode('/', array_slice($path, 3));
     $urlinfo = parse_url("http://".$location);
-    $info = $GLOBALS['auth_map'][$urlinfo['host']];
-    error_log(($info[2] == 'SSL' ? 'https://' : 'http://').$location);
-    return ($info[2] == 'SSL' ? 'https://' : 'http://').$location;
+    $info = $GLOBALS['auth_map'][$urlinfo['host'] ?? ''] ?? null;
+    error_log((($info[2] ?? null) == 'SSL' ? 'https://' : 'http://').$location);
+    return (($info[2] ?? null) == 'SSL' ? 'https://' : 'http://').$location;
   }
 }
 
@@ -188,6 +198,7 @@ function print_cache_image_or_return_original($requesturl, $etag, $lastmodified)
   // grab the etag for this cache entry, so that we can compare it against
   // the etag a client may have sent us
   // (we are supporting both If-Modified-Since and If-None-Match)
+  $fileetag = null;
   if ($etag && file_exists($etagpath)) $fileetag = trim(file_get_contents($etagpath));
 
   if ((!$etag && !$lastmodified) || ($etag && trim($etag) != $fileetag) || ($lastmodified && strtotime($lastmodified) < $filelmtime)) {
@@ -228,9 +239,9 @@ function print_304($lastmod, $etag) {
 function log_event_statistics() {
   $stats = $GLOBALS['stats'];
   $stats['request_uri'] = $_SERVER['REQUEST_URI'];
-  $stats['referer'] = $_SERVER['HTTP_REFERER'];
+  $stats['referer'] = $_SERVER['HTTP_REFERER'] ?? null;
   $stats['hostname'] = gethostname();
-  $stats['environment'] = $_ENV['IMAGEHANDLERSTAGE'] ?: 'development';
+  $stats['environment'] = ($_ENV['IMAGEHANDLERSTAGE'] ?? null) ?: 'development';
   if ($stats['environment'] == 'development') error_log(print_r($stats, TRUE));
 }
 ?>
