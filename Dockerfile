@@ -21,6 +21,7 @@ RUN apt-get update && apt-get upgrade -y && \
     apt-get clean && rm -rf /tmp/* /var/tmp*
 
 COPY apache/secure.conf /etc/apache2/sites-enabled
+COPY apache/no-multipart.conf /etc/apache2/conf-enabled
 COPY apache/mpm_prefork.conf /etc/apache2/mods-available
 COPY apache/php-overrides.ini /usr/local/etc/php/conf.d/php-overrides.ini
 RUN mkdir /securekeys
