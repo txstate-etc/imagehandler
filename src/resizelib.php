@@ -86,7 +86,13 @@ function get_raw_image($requesturl, $lastmod='') {
   file_put_contents($etagpath, md5($imgdata));
 
   $image = new Gmagick();
-  $image->readImageBlob($imgdata);
+  try {
+    $image->readImageBlob($imgdata);
+  } catch (GmagickException $e) {
+    // libmagic calls some formats images (e.g. MVG) that GraphicsMagick can't decode from a blob
+    http_response_code(400);
+    exit;
+  }
 
   $exif = exif_read_data("data://".explode(';',$mimetype)[0].";base64," . base64_encode($imgdata));
   if ($exif) {

@@ -2,7 +2,7 @@ services:
   imagehandler:
     build: .
     environment:
-      IMAGEHANDLERAUTHJSON: '{ "jsnider2.github.io": ["", "", "SSL"], "origin": ["", "", ""] }'
+      IMAGEHANDLERAUTHJSON: '{ "origin": ["", "", ""] }'
     healthcheck:
       test: ["CMD", "curl", "-s", "http://127.0.0.1/health-check"]
       interval: 5s
