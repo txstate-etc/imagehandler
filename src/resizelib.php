@@ -205,7 +205,7 @@ function print_cache_image_or_return_original($requesturl, $etag, $lastmodified)
   // the etag a client may have sent us
   // (we are supporting both If-Modified-Since and If-None-Match)
   $fileetag = null;
-  if ($etag && file_exists($etagpath)) $fileetag = trim(file_get_contents($etagpath));
+  if (file_exists($etagpath)) $fileetag = trim(file_get_contents($etagpath));
 
   if ((!$etag && !$lastmodified) || ($etag && trim($etag) != $fileetag) || ($lastmodified && strtotime($lastmodified) < $filelmtime)) {
     // client's cache is out of date (but our cache entry is good), send them the binary
