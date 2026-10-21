@@ -1,4 +1,4 @@
-FROM php:8.5-apache AS gifsicle
+FROM php:8.5.12RC1-apache-trixie AS gifsicle
 # build and install gifsicle
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install -y build-essential automake git
@@ -8,7 +8,7 @@ RUN git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
 RUN autoreconf -i
 RUN ./configure --disable-gifview && make && make install
 
-FROM php:8.5-apache
+FROM php:8.5.12RC1-apache-trixie
 
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y libgraphicsmagick1-dev && \
