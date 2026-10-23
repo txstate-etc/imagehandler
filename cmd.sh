@@ -14,8 +14,8 @@ LAST_CLEANUP=$(date +%s)
 while true; do
 	if [ $(date +%H%M) == "0900" ] && [ $(date -d "-1hour" +%s) -ge $LAST_CLEANUP ]; then
 		LAST_CLEANUP=$(date +%s)
-		su -c "find /var/cache/resize -delete -mtime +${IMAGEHANDLERCLEANUPDAYS-60}" www-data
-		su -c "find /var/cache/resize -delete -empty -type d" www-data
+		find /var/cache/resize -mindepth 1 -mtime +${IMAGEHANDLERCLEANUPDAYS-60} -delete
+		find /var/cache/resize -mindepth 1 -empty -type d -delete
 	fi
 	sleep 1
 done
